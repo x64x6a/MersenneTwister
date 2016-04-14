@@ -1,8 +1,7 @@
-import turtle
-import random
-import middlesquare
-from time import sleep
 from os import urandom
+import random
+import turtle
+import middlesquare
 
 
 def repos(tmnt, widths, heights):
@@ -27,12 +26,10 @@ def repos(tmnt, widths, heights):
 if __name__ == '__main__':
     SPEED = 0
     DIST = 8
-
-    wn = turtle.Screen()
-    #wn.bgcolor("#9C9C9C")
-    wn.bgcolor("black")
+    BGCOLOR = "black"
 
     turtle1 = turtle.Turtle()
+    turtle1.getscreen().bgcolor(BGCOLOR)
     turtle2 = turtle.Turtle()
     turtle3 = turtle.Turtle()
 
@@ -57,7 +54,6 @@ if __name__ == '__main__':
         a = rand.getrandbits(32)
         b = int(urandom(4).encode('hex'), 16)
         c = msq.next()
-        print c
 
         turtle1.setheading(a)
         turtle1.forward(DIST)
@@ -71,6 +67,10 @@ if __name__ == '__main__':
         repos(turtle1, widths, heights)
         repos(turtle2, widths, heights)
         repos(turtle3, widths, heights)
+
+        width,height = turtle1.window_width(), turtle1.window_height()
+        widths = -(width/2),(width/2)
+        heights = -(height/2),(height/2)
 
 
 
