@@ -28,6 +28,9 @@ if __name__ == '__main__':
     DIST = 8
     BGCOLOR = "black"
 
+    screen = turtle.Screen()
+    screen.title("Random Walk with Mersenne Twister (Red), Middle Square (White) and uRandom (Blue)")
+
     turtle1 = turtle.Turtle()
     turtle1.getscreen().bgcolor(BGCOLOR)
     turtle2 = turtle.Turtle()
