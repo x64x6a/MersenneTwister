@@ -1,10 +1,10 @@
 import math
 
-def middle(generator, seed):
+def middle(generator, seed, length):
 	#Seed2 will be the middle-square
 	seed2 = str(generator)
 
-	padd = float(len(str(generator)) - leng)
+	padd = float(len(str(generator)) - length)
 
 	# If zero 
 	if not (padd % 2):
@@ -16,21 +16,30 @@ def middle(generator, seed):
 
 	return int(seed2)
 
-#Get a Seed value from the user
-seed = input("Enter a seed: ")
-leng = len(str(seed))
+def random(seed):
+	length = len(str(seed))
+	while 1:
+		generator = seed ** 2
+		seed = middle(generator, seed, length)
+		yield int(str(seed).zfill(length))
 
-counter = 0
 
-# Run for 5 rounds
-while counter is not 6:
-	#Generate int for Seed2
-	generator = seed ** 2
+if __name__ == '__main__':
+	#Get a Seed value from the user
+	seed = input("Enter a seed: ")
+	length = len(str(seed))
 
-	seed = middle(generator, seed)
+	counter = 0
 
-	print str(seed).zfill(leng)
+	# Run for 5 rounds
+	while counter is not 6:
+		#Generate int for Seed2
+		generator = seed ** 2
 
-	counter = counter + 1
+		seed = middle(generator, seed)
+
+		print str(seed).zfill(length)
+
+		counter = counter + 1
 
 
