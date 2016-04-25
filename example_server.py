@@ -26,6 +26,9 @@ while 1:
     print 'Seed for Python\'s random: {seed}\n'.format(seed=seed)
 
     serv = random.Random(seed)
+    serv.getrandbits(32)
+    serv.getrandbits(32)
+    serv.getrandbits(32)
 
     print '--------------------------------------------------------'
     while 1:

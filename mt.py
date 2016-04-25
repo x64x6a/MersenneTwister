@@ -40,22 +40,16 @@ class MersenneTwister(object):
         """
         mt = self.mt
         if self.index >= 624:
+            # do twist
             k = 0
-            while k < 624-397:
-                y = (mt[k] & 0x80000000) | (mt[k+1] & 0x7fffffff)
+            for k in range(624):
+                y = (mt[k] & 0x80000000) | (mt[(k+1) % 624] & 0x7fffffff)
                 n = 0x9908b0df if y % 2 else 0
-                mt[k] = mt[k+397] ^ (y >> 1) ^ n
-                k += 1
-            while k < 624-1:
-                y = (mt[k] & 0x80000000) | (mt[k+1] & 0x7fffffff)
-                n = 0x9908b0df if y % 2 else 0
-                mt[k] = mt[k+(397-624)] ^ (y >> 1) ^ n
-                k += 1
-            y = (mt[624-1] & 0x80000000)|(mt[0] & 0x7fffffff)
-            n = 0x9908b0df if y % 2 else 0
-            mt[624-1] = mt[397-1] ^ (y >> 1) ^ n
+                mt[k] = mt[(k+397) % 624] ^ (y >> 1) ^ n
             self.index = 0
-        y = mt[self.index];
+
+        # generate random number
+        y = mt[self.index]
         self.index += 1
         y ^= (y >> 11)
         y ^= (y << 7) & 0x9d2c5680
@@ -111,27 +105,38 @@ class MTServer(object):
             yield r.getrandbits(32)
 
 
-def unBitshiftRightXor(value, shift):
+def reverse_rshift_xor(y, shift):
     i = 0;
-    result = 0;
     while (i * shift < 32):
-        partMask = (((0xffffffff << (32 - shift)) & 0xffffffff) >> (shift * i))
-        part = value & partMask
-        value ^= part >> shift
-        result |= part
-        i+=1
-    return result
+        # Get bits to shift for bit section
+        unshift = y & (((0xffffffff << (32 - shift)) & 0xffffffff) >> (shift * i))
 
-def unBitshiftLeftXor(value, shift, mask):
+        # Reverse right shift
+        unshift = unshift >> shift
+
+        # Reverse xor
+        y ^= unshift
+
+        i += 1
+    return y
+
+def reverse_lshift_xor(y, shift, mask):
     i = 0
-    result = 0
     while (i * shift < 32):
-        partMask = ((0xffffffff >> (32 - shift))) << (shift * i)
-        part = value & partMask
-        value ^= (part << shift) & mask
-        result |= part
-        i+=1
-    return result
+        # Git bits to shift for bit section
+        unshift = y & (((0xffffffff >> (32 - shift))) << (shift * i))
+
+        # Reverse left shift
+        unshift = (unshift << shift)
+
+        # Reverse mask
+        unshift &= mask
+
+        # Reverse xor
+        y ^=  unshift
+
+        i += 1
+    return y
 
 def backtrack(numbers):
     """
@@ -140,9 +145,9 @@ def backtrack(numbers):
     assert len(numbers) == 624
     state = []
     for n in numbers:
-        n = unBitshiftRightXor(n, 18)
-        n = unBitshiftLeftXor(n, 15, 4022730752)
-        n = unBitshiftLeftXor(n, 7, 2636928640)
-        n = unBitshiftRightXor(n, 11)
+        n = reverse_rshift_xor(n, 18)               # reverse: y ^= (y >> 18)
+        n = reverse_lshift_xor(n, 15, 0xefc60000)   # reverse: y ^= (y << 15) & 0xefc60000
+        n = reverse_lshift_xor(n,  7, 0x9d2c5680)   # reverse: y ^= (y <<  7) & 0x9d2c5680
+        n = reverse_rshift_xor(n, 11)               # reverse: y ^= (y >> 11)
         state.append(n)
     return state
