@@ -1,7 +1,5 @@
 from os import urandom
 
-def _int32(n):
-    return n & 0xffffffff
 
 class MersenneTwister(object):
     """
@@ -11,7 +9,7 @@ class MersenneTwister(object):
         self.index = 624
         self.mt = [seed] + [0] * 623
         for i in range(1, 624):
-            self.mt[i] = _int32(1812433253 * (self.mt[i - 1] ^ self.mt[i - 1] >> 30) + i)
+            self.mt[i] = 0xffffffff & (0x6c078965 * (self.mt[i - 1] ^ self.mt[i - 1] >> 30) + i)
 
     def setstate(self, state):
         self.mt = state
@@ -32,24 +30,24 @@ class MersenneTwister(object):
         Alias to random 32, only accepts 32 bits
         """
         assert n == 32
-        return self.random32()        
+        return self.random32()
+
+    def twist(self):
+        for k in range(624):
+            y = (self.mt[k] & 0x80000000) | (self.mt[(k+1) % 624] & 0x7fffffff)
+            n = 0x9908b0df if y % 2 else 0
+            self.mt[k] = self.mt[(k+397) % 624] ^ (y >> 1) ^ n
+        self.index = 0
 
     def random32(self):
         """
         Returns the next 32 bit random number
         """
-        mt = self.mt
         if self.index >= 624:
-            # do twist
-            k = 0
-            for k in range(624):
-                y = (mt[k] & 0x80000000) | (mt[(k+1) % 624] & 0x7fffffff)
-                n = 0x9908b0df if y % 2 else 0
-                mt[k] = mt[(k+397) % 624] ^ (y >> 1) ^ n
-            self.index = 0
+            self.twist()
 
         # generate random number
-        y = mt[self.index]
+        y = self.mt[self.index]
         self.index += 1
         y ^= (y >> 11)
         y ^= (y << 7) & 0x9d2c5680
@@ -75,7 +73,7 @@ class PyRand(MersenneTwister):
         j = 0
         m = max(624, len(key))
         for k in xrange(m, 0, -1):
-            mt[i] = _int32((mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1664525)) + key[j] + j)
+            mt[i] = 0xffffffff & ((mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1664525)) + key[j] + j)
             i += 1
             if i >= 624:
                 mt[0] = mt[623]
@@ -83,7 +81,7 @@ class PyRand(MersenneTwister):
             j = (j+1) % len(key)
 
         for k in xrange(623, 0, -1):
-            mt[i] = _int32((mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1566083941)) - i)
+            mt[i] = 0xffffffff & ((mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1566083941)) - i)
             i += 1
             if i >= 624:
                 mt[0] = mt[624-1]
@@ -107,6 +105,7 @@ class MTServer(object):
 
 def reverse_rshift_xor(y, shift):
     i = 0;
+    # iterate over every bit-shifted section
     while (i * shift < 32):
         # Get bits to shift for bit section
         unshift = y & (((0xffffffff << (32 - shift)) & 0xffffffff) >> (shift * i))
@@ -122,6 +121,7 @@ def reverse_rshift_xor(y, shift):
 
 def reverse_lshift_xor(y, shift, mask):
     i = 0
+    # iterate over every bit-shifted section
     while (i * shift < 32):
         # Git bits to shift for bit section
         unshift = y & (((0xffffffff >> (32 - shift))) << (shift * i))
