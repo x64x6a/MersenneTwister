@@ -97,14 +97,16 @@ class PyRand(MersenneTwister):
         mt[0] = 0x80000000
 
 class MTServer(object):
-    def __init__(self, rand=PyRand):
-        self.seed = int(urandom(4).encode('hex'), 16)
+    def __init__(self, seed, rand=PyRand):
+        self.seed = seed
         self.rand = rand
+        self.state = []
     def start(self):
         """
         Returns a generator of PRNG numbers
         """
         r = self.rand(self.seed)
+        self.state = r.mt
         while 1:
             yield r.getrandbits(32)
 
