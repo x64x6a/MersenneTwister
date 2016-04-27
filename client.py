@@ -36,7 +36,7 @@ rand = mt.MersenneTwister(0)
 rand.setstate(state)
 
 
-N = 10000
+N = 5000
 print 'Checking the next {n} numbers for PRNG...\n\n'.format(n=N)
 
 # Check next 100 numbers
