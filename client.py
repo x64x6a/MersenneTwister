@@ -2,7 +2,7 @@ import socket
 import mt
 
 def prettify_numlist(numbers):
-    n = 6
+    n = 3
     return '[ ' + '  '.join(map(str,numbers[:n])) + ' ... ' + ' '.join(map(str,numbers[-n:])) + ' ]'
 
 HOST = '127.0.0.1'
@@ -10,23 +10,30 @@ PORT = 1337
 
 s = socket.create_connection((HOST,PORT))
 
+print "==================================================\n"
 print "Connected!\n"
 raw_input('>')
-print
+print '\n'
 
 numbers = []
+print '--------------------------------------------------------'
 for i in range(624):
-    s.send('0\n')
+    send = '0'
+    print "<--    Sent:",send
+    s.send(send+'\n')
     n = s.recv(4096).strip('\n')
+    print "--> Received:",n
     numbers.append(int(n))
-print '624 random numbers: {numbers}\n'.format(numbers=prettify_numlist(numbers))
+    print '\n\n\n'
+    print '--------------------------------------------------------'
+#print '624 random numbers: {numbers}\n'.format(numbers=prettify_numlist(numbers))
 
 raw_input('>')
 
-print '\nBack tracking to the state...\n'
+print '\nBack tracking random numbers to state table...\n'
 state = mt.backtrack(numbers)
 
-print 'Found state:     {n}'.format(n=prettify_numlist(state))
+print 'Found state:     {n}\n'.format(n=prettify_numlist(state))
 
 raw_input('>')
 print 'Setting the state using basic Mersenne Twister...'
@@ -42,11 +49,20 @@ print 'Checking the next {n} numbers for PRNG...\n\n'.format(n=N)
 # Check next 100 numbers
 for i in range(N):
     rand_c = rand.getrandbits(32)
-    s.send(str(rand_c)+'\n')
+    send = str(rand_c)
+    print "<--    Sent:",send
+    s.send(send+'\n')
     
     rand_s = s.recv(4096).strip('\n')
     rand_s = int(rand_s)
+    print "--> Received:",rand_s
 
+    print
+    print rand_s == rand_c
     assert rand_s == rand_c
+    print '\n'
+    print '--------------------------------------------------------'
 
-print 'IT WORKS!!!'
+
+win = 'Successfully predicted {n} random numbers!'.format(n=N)
+print '\n{win}'.format(win=win)

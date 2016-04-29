@@ -3,7 +3,7 @@ import os
 import random
 
 def prettify_numlist(numbers):
-    n = 6
+    n = 3
     return '[ ' + '  '.join(map(str,numbers[:n])) + ' ... ' + ' '.join(map(str,numbers[-n:])) + ' ]'
 
 HOST = '127.0.0.1'
@@ -23,7 +23,7 @@ while 1:
     
     # Create seed
     seed = int(os.urandom(4).encode('hex'), 16)
-    print 'Seed for Python\'s random: {seed}\n'.format(seed=seed)
+    print 'Random seed (urandom) for client session: {seed}\n'.format(seed=seed)
 
     serv = random.Random(seed)
 
@@ -35,16 +35,16 @@ while 1:
             if not r:
                 break
             r = r.strip('\n')
+            print "--> Received:",r
 
             # Send next random number
             rand = serv.getrandbits(32)
             conn.send(str(rand)+'\n')
-            print "Random number recv:",r
-            print "Random number sent:",rand
+            print "<--    Sent:",rand
 
             # Pythons state's last value is the current nth random number.. so ignore it
             state = serv.getstate()[1][:-1]
-            print 'Current state:  {n}\n'.format(n=prettify_numlist(state))
+            print '\nCurrent state:\n    {n}'.format(n=prettify_numlist(state))
             print '--------------------------------------------------------'
         except:
             break
